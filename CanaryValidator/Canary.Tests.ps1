@@ -173,7 +173,110 @@ while ($runCount -le $NumberOfIterations)
             $defaultSubscription | Select-AzureRmSubscription
         }
     } 
-       
+   
+    Invoke-Usecase -Name 'ListFabricResourceProviderInfo' -Description "List FabricResourceProvider(FRP) information like storage shares, capacity, logical networks etc." -UsecaseBlock `
+    {
+        Invoke-Usecase -Name 'GetAzureStackInfraRole' -Description "List all infrastructure roles" -UsecaseBlock `
+        {
+	        Get-AzSInfraRole -AzureStackCredentials $ServiceAdminCredentials -TenantID $TenantID -EnvironmentName $SvcAdminEnvironmentName -region $ResourceLocation
+        }
+
+        Invoke-Usecase -Name 'GetAzureStackInfraRoleInstance' -Description "List all infrastructure role instances" -UsecaseBlock `
+        {
+	        Get-AzSInfraRoleInstance -AzureStackCredentials $ServiceAdminCredentials -TenantID $TenantID -EnvironmentName $SvcAdminEnvironmentName -region $ResourceLocation
+        }
+
+        Invoke-Usecase -Name 'GetAzureStackLogicalNetwork' -Description "List all logical networks" -UsecaseBlock `
+        {
+	        Get-AzSLogicalNetwork -AzureStackCredentials $ServiceAdminCredentials -TenantID $TenantID -EnvironmentName $SvcAdminEnvironmentName -region $ResourceLocation
+        }
+
+        Invoke-Usecase -Name 'GetAzureStackStorageCapacity' -Description "List storage capacity" -UsecaseBlock `
+        {
+	        Get-AzSStorageCapacity -AzureStackCredentials $ServiceAdminCredentials -TenantID $TenantID -EnvironmentName $SvcAdminEnvironmentName -region $ResourceLocation
+        }
+
+        Invoke-Usecase -Name 'GetAzureStackStorageShare' -Description "List all storage file shares" -UsecaseBlock `
+        {
+	        Get-AzSStorageShare -AzureStackCredentials $ServiceAdminCredentials -TenantID $TenantID -EnvironmentName $SvcAdminEnvironmentName -region $ResourceLocation
+        }
+
+        Invoke-Usecase -Name 'GetAzureStackScaleUnit' -Description "List Azure Stack scale units in specified Region" -UsecaseBlock `
+        {
+	        Get-AzSScaleUnit -AzureStackCredentials $ServiceAdminCredentials -TenantID $TenantID -EnvironmentName $SvcAdminEnvironmentName -region $ResourceLocation
+        }
+
+        Invoke-Usecase -Name 'GetAzureStackScaleUnitNode' -Description "List nodes in scale unit" -UsecaseBlock `
+        {
+	        Get-AzSScaleUnitNode -AzureStackCredentials $ServiceAdminCredentials -TenantID $TenantID -EnvironmentName $SvcAdminEnvironmentName -region $ResourceLocation
+        }
+
+        Invoke-Usecase -Name 'GetAzureStackIPPool' -Description "List all IP pools" -UsecaseBlock `
+        {
+	        Get-AzSIPPool -AzureStackCredentials $ServiceAdminCredentials -TenantID $TenantID -EnvironmentName $SvcAdminEnvironmentName -region $ResourceLocation
+        }
+
+        Invoke-Usecase -Name 'GetAzureStackMacPool' -Description "List all MAC address pools " -UsecaseBlock `
+        {
+	        Get-AzSMacPool -AzureStackCredentials $ServiceAdminCredentials -TenantID $TenantID -EnvironmentName $SvcAdminEnvironmentName -region $ResourceLocation
+        }
+
+        Invoke-Usecase -Name 'GetAzureStackGatewayPool' -Description "List all gateway pools" -UsecaseBlock `
+        {
+	        Get-AzSGatewayPool -AzureStackCredentials $ServiceAdminCredentials -TenantID $TenantID -EnvironmentName $SvcAdminEnvironmentName -region $ResourceLocation
+        }
+
+        Invoke-Usecase -Name 'GetAzureStackSLBMux' -Description "List all SLB MUX instances" -UsecaseBlock `
+        {
+	        Get-AzSSLBMUX -AzureStackCredentials $ServiceAdminCredentials -TenantID $TenantID -EnvironmentName $SvcAdminEnvironmentName -region $ResourceLocation
+        }
+
+        Invoke-Usecase -Name 'GetAzureStackGateway' -Description "List all gateway" -UsecaseBlock `
+        {
+	        Get-AzSGateway -AzureStackCredentials $ServiceAdminCredentials -TenantID $TenantID -EnvironmentName $SvcAdminEnvironmentName -region $ResourceLocation
+        }            
+    }
+   
+    Invoke-Usecase -Name 'ListHealthResourceProviderAlerts' -Description "List all HealthResourceProvider(HRP) alerts " -UsecaseBlock `
+    {     
+        Invoke-Usecase -Name 'GetAzureStackAlert' -Description "List all alerts" -UsecaseBlock `
+        {
+            Get-AzSAlert -TenantID $TenantID -AzureStackCredentials $ServiceAdminCredentials -EnvironmentName $SvcAdminEnvironmentName -region $ResourceLocation
+        }
+
+    }
+
+    Invoke-Usecase -Name 'ListUpdatesResourceProviderInfo' -Description "List URP information like summary of updates available, update to be applied, last update applied etc." -UsecaseBlock `
+    {        
+	    Invoke-Usecase -Name 'GetAzureStackUpdateSummary' -Description "List summary of updates status" -UsecaseBlock `
+        {
+            Get-AzSUpdateSummary -TenantID $TenantID -AzureStackCredentials $ServiceAdminCredentials -EnvironmentName $SvcAdminEnvironmentName -region $ResourceLocation
+        }
+
+	    Invoke-Usecase -Name 'GetAzureStackUpdateToApply' -Description "List all updates that can be applied" -UsecaseBlock `
+        {
+            $updates = Get-AzSUpdate -TenantID $TenantID -AzureStackCredentials $ServiceAdminCredentials -EnvironmentName $SvcAdminEnvironmentName -region $ResourceLocation
+        }
+
+        Invoke-Usecase -Name 'InstallAzureStackUpdate' -Description "Install a particular update" -UsecaseBlock `
+        {
+            $updates = Get-AzSUpdate -TenantID $TenantID -AzureStackCredentials $ServiceAdminCredentials -EnvironmentName $SvcAdminEnvironmentName -region $ResourceLocation
+            if ($updates.count -ne 0)
+            {
+                foreach($upd in $updates)
+                { 
+                    $updateToInstall = $upd.UpdateName
+               	    Install-AzSUpdate -AzureStackCredentials $ServiceAdminCredentials -TenantID $TenantID -EnvironmentName $SvcAdminEnvironmentName -vupdate $updateToInstall -region $ResourceLocation
+                    
+                    Invoke-Usecase -Name 'GetAzureStackLastUpdateRun' -Description "List status for a specific update run" -UsecaseBlock `
+                    {
+                         Get-AzSUpdateRun -AzureStackCredentials $ServiceAdminCredentials -TenantID $TenantID -EnvironmentName $SvcAdminEnvironmentName -vupdate $updateToInstall -region $ResourceLocation
+    
+                    }    
+                } 
+            }
+        }        
+    }
     if ($WindowsISOPath)
     {
         Invoke-Usecase -Name 'UploadWindows2016ImageToPIR' -Description "Uploads a windows server 2016 image to the PIR" -UsecaseBlock `
