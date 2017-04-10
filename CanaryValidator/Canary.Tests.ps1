@@ -243,7 +243,6 @@ while ($runCount -le $NumberOfIterations)
         {
             Get-AzSAlert -TenantID $TenantID -AzureStackCredentials $ServiceAdminCredentials -EnvironmentName $SvcAdminEnvironmentName -region $ResourceLocation
         }
-
     }
 
     Invoke-Usecase -Name 'ListUpdatesResourceProviderInfo' -Description "List URP information like summary of updates available, update to be applied, last update applied etc." -UsecaseBlock `
@@ -255,27 +254,13 @@ while ($runCount -le $NumberOfIterations)
 
 	    Invoke-Usecase -Name 'GetAzureStackUpdateToApply' -Description "List all updates that can be applied" -UsecaseBlock `
         {
-            $updates = Get-AzSUpdate -TenantID $TenantID -AzureStackCredentials $ServiceAdminCredentials -EnvironmentName $SvcAdminEnvironmentName -region $ResourceLocation
+            Get-AzSUpdate -TenantID $TenantID -AzureStackCredentials $ServiceAdminCredentials -EnvironmentName $SvcAdminEnvironmentName -region $ResourceLocation
         }
-
-        Invoke-Usecase -Name 'InstallAzureStackUpdate' -Description "Install a particular update" -UsecaseBlock `
+        
+        Invoke-Usecase -Name 'GetAzureStackLastUpdateRun' -Description "List status for a specific update run" -UsecaseBlock `
         {
-            $updates = Get-AzSUpdate -TenantID $TenantID -AzureStackCredentials $ServiceAdminCredentials -EnvironmentName $SvcAdminEnvironmentName -region $ResourceLocation
-            if ($updates.count -ne 0)
-            {
-                foreach($upd in $updates)
-                { 
-                    $updateToInstall = $upd.UpdateName
-               	    Install-AzSUpdate -AzureStackCredentials $ServiceAdminCredentials -TenantID $TenantID -EnvironmentName $SvcAdminEnvironmentName -vupdate $updateToInstall -region $ResourceLocation
-                    
-                    Invoke-Usecase -Name 'GetAzureStackLastUpdateRun' -Description "List status for a specific update run" -UsecaseBlock `
-                    {
-                         Get-AzSUpdateRun -AzureStackCredentials $ServiceAdminCredentials -TenantID $TenantID -EnvironmentName $SvcAdminEnvironmentName -vupdate $updateToInstall -region $ResourceLocation
-    
-                    }    
-                } 
-            }
-        }        
+            Get-AzSUpdateRun -AzureStackCredentials $ServiceAdminCredentials -TenantID $TenantID -EnvironmentName $SvcAdminEnvironmentName -vupdate $updateToInstall -region $ResourceLocation
+        }           
     }
     if ($WindowsISOPath)
     {
