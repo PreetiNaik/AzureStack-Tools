@@ -255,12 +255,7 @@ while ($runCount -le $NumberOfIterations)
 	    Invoke-Usecase -Name 'GetAzureStackUpdateToApply' -Description "List all updates that can be applied" -UsecaseBlock `
         {
             Get-AzSUpdate -TenantID $TenantID -AzureStackCredentials $ServiceAdminCredentials -EnvironmentName $SvcAdminEnvironmentName -region $ResourceLocation
-        }
-        
-        Invoke-Usecase -Name 'GetAzureStackLastUpdateRun' -Description "List status for a specific update run" -UsecaseBlock `
-        {
-            Get-AzSUpdateRun -AzureStackCredentials $ServiceAdminCredentials -TenantID $TenantID -EnvironmentName $SvcAdminEnvironmentName -vupdate $updateToInstall -region $ResourceLocation
-        }           
+        }    
     }
     if ($WindowsISOPath)
     {
